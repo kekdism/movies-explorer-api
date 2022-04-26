@@ -1,4 +1,6 @@
 import Movie from '../models/movie.js';
+import NotFoundError from '../utils/errors/NotFoundError.js';
+import PermissionError from '../utils/errors/PermissionError.js';
 
 export const getUsersMovies = async (req, res, next) => {
   try {
@@ -24,11 +26,16 @@ export const addMovie = async (req, res, next) => {
 
 export const deleteMovie = async (req, res, next) => {
   try {
+    const { id } = req.user;
     const { movieId } = req.params;
-    const deletedMovie = await Movie.findByIdAndDelete(movieId);
-    if (!deleteMovie) {
-      throw new Error('Не верный id фильма');
+    const movie = await Movie.findById(movieId);
+    if (!movie) {
+      throw new NotFoundError('Не верный id фильма');
     }
+    if (movie.owner !== id) {
+      throw new PermissionError('Нельзя удалить фильм другого пользователя.');
+    }
+    const deletedMovie = await Movie.deleteOne({ _id: movieId });
     res.send(deletedMovie);
   } catch (err) {
     next(err);

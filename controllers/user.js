@@ -4,8 +4,8 @@ import User from '../models/user.js';
 
 import { SALT_RADIUS, JWT_SECRET } from '../utils/constants.js';
 import NotFoundError from '../utils/errors/NotFoundError.js';
-import ValidationError from '../utils/errors/ValidationError.js';
 import DuplicateError from '../utils/errors/DuplicateError.js';
+import AuthorizationError from '../utils/errors/AuthorizationError.js';
 
 export const createUser = async (req, res, next) => {
   try {
@@ -17,8 +17,9 @@ export const createUser = async (req, res, next) => {
   } catch (err) {
     if (err.code === 11000) {
       next(new DuplicateError('Такой пользователь уже существет'));
+    } else {
+      next(err);
     }
-    next(err);
   }
 };
 
@@ -27,11 +28,11 @@ export const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      throw new ValidationError('Не верный email');
+      throw new AuthorizationError('Не верная почта или пароль.');
     }
     const isCorrectPassword = await bcrypt.compare(password, user.password);
     if (!isCorrectPassword) {
-      throw new ValidationError('Не верный пароль');
+      throw new AuthorizationError('Не верная почта или пароль.');
     }
     const token = jwt.sign({ id: user._id }, JWT_SECRET);
     res.send({ token });
@@ -66,6 +67,10 @@ export const updateUser = async (req, res, next) => {
     }
     res.send(user);
   } catch (err) {
-    next(err);
+    if (err.code === 11000) {
+      next(new DuplicateError('Пользователь с таким email уже существет'));
+    } else {
+      next(err);
+    }
   }
 };

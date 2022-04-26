@@ -1,4 +1,5 @@
 import { celebrate, Segments } from 'celebrate';
+import validator from 'validator';
 import Joi from 'joi';
 
 export const registerValidation = celebrate({
@@ -30,12 +31,32 @@ export const movieValidation = celebrate({
     duration: Joi.number().required(),
     year: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string().uri().required(),
-    trailerLink: Joi.string().uri().required(),
-    thumbnail: Joi.string().uri().required(),
-    owner: Joi.string().hex().length(24).required(),
+    image: Joi.string().required().custom((value, helper) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helper.message('Поле image заполнено не верно');
+    }),
+    trailerLink: Joi.string().required().custom((value, helper) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helper.message('Поле trailerLink заполнено не верно');
+    }),
+    thumbnail: Joi.string().required().custom((value, helper) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helper.message('Поле thumbnail заполнено не верно');
+    }),
     movieId: Joi.number().required(),
-    nameRU: Joi.number().required(),
-    nameEN: Joi.number().required(),
+    nameRU: Joi.string().required(),
+    nameEN: Joi.string().required(),
+  }),
+});
+
+export const deleteMovieValidation = celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    movieId: Joi.string().hex().length(24),
   }),
 });
