@@ -1,3 +1,3 @@
 # movies-explorer-api
 
-[Бэкенд дипломного проекта.](api.movies-kekdism.nomoredomains.work)
+[Бэкенд дипломного проекта.](https://api.movies-kekdism.nomoredomains.work)
